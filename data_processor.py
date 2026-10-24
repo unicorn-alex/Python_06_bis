@@ -1,8 +1,6 @@
 import abc
 from typing import Any, Generator
 
-#generatory chyba ne ,prawda (sprawdzic w module 3 generatory i typing dla dict)
-
 # czy uzywali do czegos self w validate
 # dlaczego w case int() musza byc nawiasy, a w if juz nie moga
 # czy mam racje, ze w output potrzebny jest generator
@@ -15,7 +13,7 @@ class DataProcessor(abc.ABC):
     def get_storage(self) -> list[Any]:
         return self._storage
 
-    def set_storage(self, data: Any) -> None:
+    def set_storage(self, data: list[Any]) -> None:
         self._storage = data
 
     @abc.abstractmethod
@@ -26,14 +24,13 @@ class DataProcessor(abc.ABC):
     def ingest(self, data: Any) -> None:
         pass
 
-    def output(self) ->  Generator[tuple[int, str], None, None]:
+    def output(self) -> Generator[tuple[int, str], None, None]:
         rank = 0
         while self._storage != []:
             element = self._storage[0]
             self._storage.remove(element)
             yield rank, element
             rank += 1
-
 
 
 class NumericProcessor(DataProcessor):
@@ -61,12 +58,13 @@ class NumericProcessor(DataProcessor):
                 for element in data:
                     self._storage.append(str(element))
             elif type(data) is int or type(data) is float:
-                    self._storage.append(str(data))
+                self._storage.append(str(data))
             else:
                 raise ValueError
         except ValueError:
-                    print(" Got exception: Improper numeric data")
-                    return
+            print(" Got exception: Improper numeric data")
+            return
+
 
 class TextProcessor(DataProcessor):
 
@@ -90,7 +88,7 @@ class TextProcessor(DataProcessor):
                         raise ValueError
                 self._storage.extend(data)
             elif type(data) is str:
-                    self._storage.append(data)
+                self._storage.append(data)
             else:
                 raise ValueError
         except ValueError:
@@ -118,7 +116,7 @@ class LogProcessor(DataProcessor):
             case _:
                 return False
 
-    def ingest(self, data: dict[str, str] | list[dict[str,str]]) -> None:
+    def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
         try:
             if type(data) is dict:
                 for key, value in data.items():
@@ -133,8 +131,10 @@ class LogProcessor(DataProcessor):
                     for key, value in item.items():
                         if type(key) is not str or type(value) is not str:
                             raise ValueError
-                    for key, value in item.items():
-                        self._storage.append(key + ': ' + value)
+                    log = ""
+                    for value in item.values():
+                        log += value + ": "
+                    self._storage.append(log.rstrip(": "))
             else:
                 raise ValueError
         except ValueError:
@@ -150,14 +150,19 @@ def main() -> None:
 
     print(f" Trying to validate input '42': {numbers.validate(42)}")
     print(f" Trying to validate input 'Hello': {numbers.validate("Hello")}")
-    print(f" Trying to validate input [34, 78.0. 92]: {numbers.validate([34, 78.0, 92])}")
-    print(f" Trying to validate input [-5, 1245, 73]: {numbers.validate([-5, 1245, 73])}")
-    print(f" Trying to validate input [56.0, -35.0, 222.0]: {numbers.validate([56.0, -35.0, 222.0])}")
-    print(f" Trying to validate input [45, 'a', 45.0, 23]: {numbers.validate([45, 'a', 45.0, 23])}\n")
+    print("Trying to validate input [34, 78.0. 92]:",
+          f"{numbers.validate([34, 78.0, 92])}")
+    print(" Trying to validate input [-5, 1245, 73]:",
+          f"{numbers.validate([-5, 1245, 73])}")
+    print(" Trying to validate input [56.0, -35.0, 222.0]:",
+          f"{numbers.validate([56.0, -35.0, 222.0])}")
+    print(" Trying to validate input [45, 'a', 45.0, 23]:",
+          f"{numbers.validate([45, 'a', 45.0, 23])}\n")
 
     print(" Test invalid ingestion of string 'foo' without prior validation: ")
     numbers.ingest("foo")
-    print(" Test invalid ingestion of list [45, 'a', 45.0, 23] without prior validation: ")
+    print(" Test invalid ingestion of list [45, 'a', 45.0, 23]",
+          "without prior validation: ")
     numbers.ingest([45, 'a', 45.0, 23])
     print(" Processing data: [1, 2, 3, 4, 5]\n")
     numbers.ingest([1, 2, 3, 4, 5])
@@ -169,16 +174,19 @@ def main() -> None:
         print(f" Numeric value {num_value[0]}: {num_value[1]}")
     print('\n')
 
-
     print("Testing Text Processor...\n")
     text = TextProcessor()
 
     print(f" Trying to validate input '42': {text.validate(42)}")
-    print(f" Trying to validate input [56, 'lol', 'poop']: {text.validate([56, 'lol', 'poop'])}")
-    print(f" Trying to validate input 'abrakadabra': {text.validate("abrakadabra")}")
-    print(f" Trying to validate input ['Ala', 'ma', 'kota']: {text.validate(['Ala', 'ma', 'kota'])}\n")
+    print(" Trying to validate input [56, 'lol', 'poop']:",
+          f"{text.validate([56, 'lol', 'poop'])}")
+    print(" Trying to validate input 'abrakadabra':",
+          f"{text.validate("abrakadabra")}")
+    print(" Trying to validate input ['Ala', 'ma', 'kota']:",
+          f"{text.validate(['Ala', 'ma', 'kota'])}\n")
 
-    print(" Test invalid ingestion of list '[45, 'a', 45.0, 23]' without prior validation: ")
+    print(" Test invalid ingestion of list '[45, 'a', 45.0, 23]'",
+          "without prior validation: ")
     text.ingest([45, 'a', 45.0, 23])
     print(" Test invalid ingestion of float '56.0' without prior validation: ")
     text.ingest(56.0)
@@ -190,20 +198,32 @@ def main() -> None:
     text_value = next(text_values)
     print(f" Text value {text_value[0]}: {text_value[1]}\n\n")
 
-
     print("Testing Log Processor...\n")
     logs = LogProcessor()
 
     print(f" Trying to validate input 'Hello': {logs.validate("Hello")}")
-    print(f" Trying to validate input {{'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'}}: {logs.validate({'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'})}")
-    print(f" Trying to validate input [{{'log_level': 'NOTICE', 'log_message': 'Connection to server'}}, {{'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}}]: {logs.validate([{'log_level': 'NOTICE', 'log_message': 'Connection to server'}, {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}])}\n")
+    print(" Trying to validate input",
+          "{'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'}:",
+          f"{logs.validate({'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'})}")
+    print(" Trying to validate input",
+          "[{'log_level': 'NOTICE', 'log_message': 'Connection to server'},",
+          "{'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}]:",
+          f"{logs.validate(
+           [{'log_level': 'NOTICE', 'log_message': 'Connection to server'},
+            {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}])}")
 
     print(" Test invalid ingestion of str 'Hello' without prior validation: ")
     logs.ingest("Hello")
-    print(" Test invalid ingestion of dict '{'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'}' without prior validation: ")
+    print(" Test invalid ingestion of dict",
+          "'{'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'}'",
+          "without prior validation: ")
     logs.ingest({'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'})
-    print(" Processing data: [{'log_level': 'NOTICE', 'log_message': 'Connection to server'}, {'log_level':'ERROR', 'log_message': 'Unauthorized access!!'}]\n")
-    logs.ingest([{'log_level': 'NOTICE', 'log_message': 'Connection to server'}, {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}])
+    print(" Processing data:",
+          "[{'log_level': 'NOTICE', 'log_message': 'Connection to server'},",
+          "{'log_level':'ERROR', 'log_message': 'Unauthorized access!!'}]\n")
+    logs.ingest(
+        [{'log_level': 'NOTICE', 'log_message': 'Connection to server'},
+         {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}])
 
     print(" Extracting 2 values...")
     log_values = logs.output()
@@ -212,5 +232,5 @@ def main() -> None:
         print(f" Log entry {log_value[0]}: {log_value[1]}")
 
 
-if __name__ =="__main__":
+if __name__ == "__main__":
     main()
