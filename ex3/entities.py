@@ -67,5 +67,3 @@ class Morphagon(Creature, TransformCapability):
     def revert(self) -> str:
         self._transformed = False
         return "Morphagon stabilizes its form."
-
-

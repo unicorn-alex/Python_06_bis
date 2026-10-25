@@ -3,7 +3,7 @@ from ex3 import FlameFactory, TransformCreatureFactory, CreatureFactory
 # rozkminic dokladniej czy rozumiem ten pattern
 # rozkminic czy rozumiem ten init
 # rozkminic czy importy sa dobrze
-# +problem w factories z typingiem
+# +problem w factories z typingiem, moze tutaj: https://stackoverflow.com/questions/60732924/how-to-specify-that-a-python-object-must-be-two-types-at-once
 
 
 def main() -> None:
