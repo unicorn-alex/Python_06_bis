@@ -18,7 +18,7 @@ def main() -> None:
     print("\nTesting battle")
     make_fight(flame_factory, transform_creature_factory)
 
-def describe_entities(factory: CreatureFactory):
+def describe_entities(factory: CreatureFactory) -> None:
     base_entity = factory.create_base()
     print(base_entity.describe())
     print(base_entity.attack())
@@ -27,7 +27,7 @@ def describe_entities(factory: CreatureFactory):
     print(evolved_entity.describe())
     print(evolved_entity.attack())
 
-def make_fight(factory_1: CreatureFactory, factory_2: CreatureFactory):
+def make_fight(factory_1: CreatureFactory, factory_2: CreatureFactory) -> None:
     base_entity_1 = factory_1.create_base()
     base_entity_2 = factory_2.create_base()
 

@@ -1,17 +1,24 @@
 import abc
-from typing import Any, Generator
+from typing import Any
 
 
 class DataProcessor(abc.ABC):
 
     def __init__(self) -> None:
         self._storage: list[Any] = []
+        self._outed = 0
 
     def get_storage(self) -> list[Any]:
         return self._storage
 
     def set_storage(self, data: list[Any]) -> None:
         self._storage = data
+
+    def get_outed(self) -> int:
+        return self._outed
+
+    def set_outed(self, num: int) -> None:
+        self._outed = num
 
     @abc.abstractmethod
     def validate(self, data: Any) -> bool:
@@ -21,13 +28,12 @@ class DataProcessor(abc.ABC):
     def ingest(self, data: Any) -> None:
         pass
 
-    def output(self) -> Generator[tuple[int, str], None, None]:
-        rank = 0
-        while self._storage != []:
-            element = self._storage[0]
-            self._storage.remove(element)
-            yield rank, element
-            rank += 1
+    def output(self) -> tuple[int, str]:
+        element = self._storage[0]
+        self._storage.remove(element)
+        rank = len(self._storage) + self._outed
+        self._outed += 1
+        return rank, element
 
 
 class NumericProcessor(DataProcessor):
@@ -143,7 +149,6 @@ class DataStream():
 
     def __init__(self) -> None:
         self._processors: list[DataProcessor] = []
-        self._processed_data: dict[DataProcessor, int] = {}
 
     def get_processors(self) -> list[DataProcessor]:
         return self._processors
@@ -151,15 +156,8 @@ class DataStream():
     def set_processors(self, data: list[DataProcessor]) -> None:
         self._processors = data
 
-    def get_processed_data(self) -> dict[DataProcessor, int]:
-        return self._processed_data
-
-    def set__processed_data(self, data: dict[DataProcessor, int]) -> None:
-        self._processed_data = data
-
     def register_processor(self, proc: DataProcessor) -> None:
         self._processors.append(proc)
-        self._processed_data.update({proc: 0})
 
     def process_stream(self, stream: list[Any]) -> None:
         for data in stream:
@@ -169,10 +167,7 @@ class DataStream():
                     data_matching = True
                     break
             if data_matching is True:
-                before_ingestion = len(proc.get_storage())
                 proc.ingest(data)
-                self._processed_data[proc] += (
-                    len(proc.get_storage()) - before_ingestion)
             else:
                 print("DataStream error - Can't process element in stream:",
                       data)
@@ -183,16 +178,17 @@ class DataStream():
             print("No processor found, no data\n")
             return
         for proc in self._processors:
+            total = len(proc.get_storage()) + proc.get_outed()
             if type(proc) is NumericProcessor:
-                print(f"Numeric Processor: total {self._processed_data[proc]}",
+                print(f"Numeric Processor: total {total}",
                       f"items processed, remaining {len(proc.get_storage())}",
                       "on processor")
             if type(proc) is TextProcessor:
-                print(f"Text Processor: total {self._processed_data[proc]}",
+                print(f"Text Processor: total {total}",
                       f"items processed, remaining {len(proc.get_storage())}",
                       "on processor")
             if type(proc) is LogProcessor:
-                print(f"Log Processor: total {self._processed_data[proc]}",
+                print(f"Log Processor: total {total}",
                       f"items processed, remaining {len(proc.get_storage())}",
                       "on processor")
 
@@ -230,14 +226,11 @@ def main() -> None:
 
     print("\nConsume some elements from the data processors:",
           "Numeric 3, Text 2, Log 1")
-    num_consumer = numbers.output()
-    text_consumer = text.output()
-    log_consumer = logs.output()
     for i in range(3):
-        next(num_consumer)
+        numbers.output()
     for i in range(2):
-        next(text_consumer)
-    next(log_consumer)
+        text.output()
+    logs.output()
 
     data_stream.print_processors_stats()
 

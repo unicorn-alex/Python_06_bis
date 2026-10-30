@@ -1,20 +1,24 @@
 import abc
-from typing import Any, Generator
+from typing import Any
 
-# czy uzywali do czegos self w validate
-# dlaczego w case int() musza byc nawiasy, a w if juz nie moga
-# czy mam racje, ze w output potrzebny jest generator
 
 class DataProcessor(abc.ABC):
 
     def __init__(self) -> None:
         self._storage: list[Any] = []
+        self._outed = 0
 
     def get_storage(self) -> list[Any]:
         return self._storage
 
     def set_storage(self, data: list[Any]) -> None:
         self._storage = data
+
+    def get_outed(self) -> int:
+        return self._outed
+
+    def set_outed(self, num: int) -> None:
+        self._outed = num
 
     @abc.abstractmethod
     def validate(self, data: Any) -> bool:
@@ -24,13 +28,12 @@ class DataProcessor(abc.ABC):
     def ingest(self, data: Any) -> None:
         pass
 
-    def output(self) -> Generator[tuple[int, str], None, None]:
-        rank = 0
-        while self._storage != []:
-            element = self._storage[0]
-            self._storage.remove(element)
-            yield rank, element
-            rank += 1
+    def output(self) -> tuple[int, str]:
+        element = self._storage[0]
+        self._storage.remove(element)
+        rank = len(self._storage) + self._outed
+        self._outed += 1
+        return rank, element
 
 
 class NumericProcessor(DataProcessor):
@@ -149,8 +152,8 @@ def main() -> None:
     numbers = NumericProcessor()
 
     print(f" Trying to validate input '42': {numbers.validate(42)}")
-    print(f" Trying to validate input 'Hello': {numbers.validate("Hello")}")
-    print("Trying to validate input [34, 78.0. 92]:",
+    print(f" Trying to validate input 'Hello': {numbers.validate('Hello')}")
+    print(" Trying to validate input [34, 78.0. 92]:",
           f"{numbers.validate([34, 78.0, 92])}")
     print(" Trying to validate input [-5, 1245, 73]:",
           f"{numbers.validate([-5, 1245, 73])}")
@@ -168,9 +171,8 @@ def main() -> None:
     numbers.ingest([1, 2, 3, 4, 5])
 
     print(" Extracting 3 values...")
-    num_values = numbers.output()
     for i in range(3):
-        num_value = next(num_values)
+        num_value = numbers.output()
         print(f" Numeric value {num_value[0]}: {num_value[1]}")
     print('\n')
 
@@ -181,7 +183,7 @@ def main() -> None:
     print(" Trying to validate input [56, 'lol', 'poop']:",
           f"{text.validate([56, 'lol', 'poop'])}")
     print(" Trying to validate input 'abrakadabra':",
-          f"{text.validate("abrakadabra")}")
+          f"{text.validate('abrakadabra')}")
     print(" Trying to validate input ['Ala', 'ma', 'kota']:",
           f"{text.validate(['Ala', 'ma', 'kota'])}\n")
 
@@ -194,25 +196,25 @@ def main() -> None:
     text.ingest(['Hello', 'Nexus', 'World'])
 
     print(" Extracting 1 value...")
-    text_values = text.output()
-    text_value = next(text_values)
+    text_value = text.output()
     print(f" Text value {text_value[0]}: {text_value[1]}\n\n")
 
     print("Testing Log Processor...\n")
     logs = LogProcessor()
 
-    print(f" Trying to validate input 'Hello': {logs.validate("Hello")}")
+    print(f" Trying to validate input 'Hello': {logs.validate('Hello')}")
     print(" Trying to validate input",
           "{'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'}:",
           f"{logs.validate({'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'})}")
     print(" Trying to validate input",
           "[{'log_level': 'NOTICE', 'log_message': 'Connection to server'},",
-          "{'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}]:",
-          f"{logs.validate(
+          "{'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}]: ",
+          logs.validate(
            [{'log_level': 'NOTICE', 'log_message': 'Connection to server'},
-            {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}])}")
+            {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}]))
 
-    print(" Test invalid ingestion of str 'Hello' without prior validation: ")
+    print("\n Test invalid ingestion of str 'Hello'",
+          "without prior validation: ")
     logs.ingest("Hello")
     print(" Test invalid ingestion of dict",
           "'{'Hello': 'Obama', 'strucle': 42, 'Jojo': 'hop'}'",
@@ -226,9 +228,8 @@ def main() -> None:
          {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}])
 
     print(" Extracting 2 values...")
-    log_values = logs.output()
     for i in range(2):
-        log_value = next(log_values)
+        log_value = logs.output()
         print(f" Log entry {log_value[0]}: {log_value[1]}")
 
 
