@@ -31,7 +31,7 @@ class DataProcessor(abc.ABC):
     def output(self) -> tuple[int, str]:
         element = self._storage[0]
         self._storage.remove(element)
-        rank = len(self._storage) + self._outed
+        rank = self._outed
         self._outed += 1
         return rank, element
 
@@ -165,9 +165,10 @@ class JsonPlugin():
     def process_output(self, data: list[tuple[int, str]]) -> None:
         json_string = "{"
         for elements in data:
-            json_string += f'"item_{elements[0]}": "{elements[1]}",'
+            json_string += f'"item_{elements[0]}": "{elements[1]}", '
+        json_string = json_string.rstrip(', ') + "}"
         print("JSON output:")
-        print(json_string.rstrip(','))
+        print(json_string)
 
 
 class DataStream():

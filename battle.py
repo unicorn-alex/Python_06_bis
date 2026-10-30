@@ -1,10 +1,5 @@
 from ex3 import FlameFactory, TransformCreatureFactory, CreatureFactory
 
-# rozkminic dokladniej czy rozumiem ten pattern
-# rozkminic czy rozumiem ten init
-# rozkminic czy importy sa dobrze
-# +problem w factories z typingiem, moze tutaj: https://stackoverflow.com/questions/60732924/how-to-specify-that-a-python-object-must-be-two-types-at-once
-
 
 def main() -> None:
     print("Testing factory")
@@ -18,6 +13,7 @@ def main() -> None:
     print("\nTesting battle")
     make_fight(flame_factory, transform_creature_factory)
 
+
 def describe_entities(factory: CreatureFactory) -> None:
     base_entity = factory.create_base()
     print(base_entity.describe())
@@ -27,13 +23,16 @@ def describe_entities(factory: CreatureFactory) -> None:
     print(evolved_entity.describe())
     print(evolved_entity.attack())
 
+
 def make_fight(factory_1: CreatureFactory, factory_2: CreatureFactory) -> None:
+
     base_entity_1 = factory_1.create_base()
     base_entity_2 = factory_2.create_base()
 
     print(base_entity_1.describe())
     print(" vs.")
     print(base_entity_2.describe())
+    print(" fight!")
     print(base_entity_1.attack())
     print(base_entity_2.attack())
 

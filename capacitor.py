@@ -1,9 +1,10 @@
 from ex3 import TransformCreatureFactory
 
+
 def main() -> None:
     print("Testing Creature with transform capability")
     transform_creature_factory = TransformCreatureFactory()
-    
+
     print(" base:")
     base_entity = transform_creature_factory.create_base()
     print(base_entity.describe())

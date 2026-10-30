@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from .entities import Flameling, Pyrodon, Shiftling, Morphagon, Creature
 
-#tutaj problem z CreatureFactory co dac
 
 class CreatureFactory(ABC):
 
@@ -21,6 +20,7 @@ class FlameFactory(CreatureFactory):
 
     def create_evolved(self) -> Pyrodon:
         return Pyrodon()
+
 
 class TransformCreatureFactory(CreatureFactory):
 

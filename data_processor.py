@@ -31,7 +31,7 @@ class DataProcessor(abc.ABC):
     def output(self) -> tuple[int, str]:
         element = self._storage[0]
         self._storage.remove(element)
-        rank = len(self._storage) + self._outed
+        rank = self._outed
         self._outed += 1
         return rank, element
 

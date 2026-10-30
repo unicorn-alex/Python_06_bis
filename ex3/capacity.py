@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class TransformCapability(ABC):
 
     def __init__(self) -> None:

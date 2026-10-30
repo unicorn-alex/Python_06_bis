@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from .capacity import TransformCapability
 
+
 class Creature(ABC):
 
     def __init__(self, name: str, kind: str) -> None:
@@ -15,13 +16,15 @@ class Creature(ABC):
     def describe(self) -> str:
         return f"{self._name} is a {self._type} type Creature"
 
+
 class Flameling(Creature):
-    
+
     def __init__(self) -> None:
         super().__init__("Flameling", "Fire")
 
     def attack(self) -> str:
         return "Flameling uses Ember!"
+
 
 class Pyrodon(Creature):
 
@@ -33,7 +36,7 @@ class Pyrodon(Creature):
 
 
 class Shiftling(Creature, TransformCapability):
-    
+
     def __init__(self) -> None:
         super().__init__("Shiftling", "Normal")
 
@@ -50,8 +53,9 @@ class Shiftling(Creature, TransformCapability):
         self._transformed = False
         return "Shiftling returns to normal."
 
+
 class Morphagon(Creature, TransformCapability):
-    
+
     def __init__(self) -> None:
         super().__init__("Morphagon", "Normal/Dragon")
 
